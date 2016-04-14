@@ -1,3 +1,10 @@
+/**
+ * TopCoder - SRM 687
+ * Difficulty: Hard
+ * Points: 1000
+ * Passes System Test: true
+ * @author Jose Taira
+ */
 public class Queueing {
 
   public double probFirst(int len1, int len2, int p1, int p2) {
@@ -33,12 +40,5 @@ public class Queueing {
     }
 
     return probs[len1][len2];
-  }
-
-  public static void main(String[] args) {
-    Queueing q = new Queueing();
-    // Within 10e-9 is acceptable
-    System.out.println("0.5 : " + q.probFirst(1, 2, 2, 1));
-    System.out.println("0.9835390946502058 : " + q.probFirst(1, 3, 3, 7));
   }
 }
