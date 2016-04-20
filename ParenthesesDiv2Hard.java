@@ -7,7 +7,7 @@ import java.util.List;
  * Difficulty: Hard
  * Division: 2
  * Points: 1000
- * Passes System Test: false
+ * Passes System Test: true
  * @author Jose Taira
  */
 public class ParenthesesDiv2Hard {

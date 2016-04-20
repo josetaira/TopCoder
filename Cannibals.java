@@ -1,138 +1,177 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
+/**
+ * Source: TopCoder - SRM 305
+ * Difficulty: Hard
+ * Division: 2
+ * Points: 1000
+ * Passes System Test: true
+ * @author Jose Taira
+ */
 public class Cannibals {
+    /**
+     * Summary: Starting with the intial state, you can move to multiple states through your list of valid moves.
+     * Using these valid moves, do a breadth-first search for the state (0,0) -> (M,C)
+     *
+     * 0. Create a list of valid moves
+     * 1. Create a queue and add the initial state to it
+     * 2. For each state in the queue, and each valid move:
+     *      - check if the new state formed after the move is valid. If so, enqueue new state
+     *      - check if the new state is not an already visited state for the current direction. If it is, skip.
+     * 3. Repeat #2 until there are no more new items in the queue, or the state (0,0) is found.
+     * 4. If state (0,0) is never found, return -1
+     *
+     * @param M
+     * @param C
+     * @param R
+     * @return
+     */
     public int minCrossings(int M, int C, int R) {
-        int crossings = 0;
 
         Side startSide = new Side(M, C);
-        Side endSide = new Side(0, 0);
-
-        int prev = Integer.MAX_VALUE;
-        Trip t = new Trip(R);
-
-        int[][] states = new int[M][C];
-
         List<Move> validMoves = new ArrayList<Move>();
-        for(int c = 0; c < R; c++) {
-            for(int m = 0; m < R; m++) {
-                if(m + c >= 1 && (m == 0 || m >= c)) {
+        for(int c = 0; c <= R; c++) {
+            for(int m = 0; m <= R; m++) {
+                if(m + c >= 1 && m + c <= R && (m == 0 || m >= c)) {
                     validMoves.add(new Move(m, c));
                 }
             }
         }
 
-        while(startSide.count() > 0 && prev != startSide.count()) {
-            prev = startSide.count();
+        int direction = -1;
+        int level = 0;
+        Queue<Side> sideStates = new LinkedList<Side>();
+        sideStates.add(startSide);
+        List<Side> visitedGoingStates = new ArrayList<Side>();
+        List<Side> visitedEndingStates = new ArrayList<Side>();
+        while(sideStates.size() > 0) {
+            level++;
 
-            int maxGoing = -1;
-            int x = -1;
-            int y = -1;
+            List<Side> targetCache = direction == -1 ? visitedGoingStates : visitedEndingStates;
+            List<Side> otherCache = direction == -1 ? visitedEndingStates : visitedGoingStates;
 
-            for(int c = 0; c < startSide.C; c++) {
-                for(int m = 0; m < startSide.M; m++) {
-                    // Have people ride the boat to endSide
-                    int z = 0;
-                    if(t.isValid(m, c)
-                       && startSide.isValid(-m, -c)
-                       && endSide.isValid(m, c)
-                       && m + c >= 1) {
-                        z = m + c;
-                    }
+            List<Side> newStates = new ArrayList<Side>();
+            for(int levelSize = sideStates.size(); levelSize > 0; levelSize--) {
+                Side currSide = sideStates.remove();
 
-                    if(z > maxGoing) {
-                        maxGoing = z;
-                        x = m;
-                        y = c;
+                if(targetCache.contains(currSide)) {
+                    continue;
+                } else {
+                    targetCache.add(currSide);
+                }
+
+                for (int i = 0; i < validMoves.size(); i++) {
+                    Move move = validMoves.get(i);
+                    Side newSideState = currSide.clone();
+                    newSideState.add(direction * move.M, direction * move.C);
+
+
+                    if(newSideState.isValid()) {
+                        if(newSideState.count() == 0) {
+                            return level;
+                        }
+                        if(!otherCache.contains(newSideState)) {
+                            if(!newStates.contains(newSideState)) {
+                                newStates.add(newSideState);
+                            }
+                        }
                     }
                 }
             }
 
-            System.out.println(x + " x-y " + y);
-            startSide.M -= x;
-            startSide.C -= y;
+            sideStates.addAll(newStates);
 
-            endSide.M += x;
-            endSide.C += y;
-
-            System.out.println("Going trip: ");
-            System.out.println("Start Side: " + startSide);
-            System.out.println("End Side: " + endSide);
-
-            if(startSide.count() > 0) {
-                int minReturning = Integer.MAX_VALUE;
-                int xb = -1;
-                int yb = -1;
-
-                for(int m = 0; m < endSide.M; m++) {
-                    for(int c = 0; c < endSide.C; c++) {
-                        int z = Integer.MAX_VALUE;
-                        if(t.isValid(m, c)
-                          && startSide.isValid(m, c)
-                          && endSide.isValid(-m, -c)
-                          && (m + c >= 1)) {
-                            z = m + c;
-                        }
-
-                        if(z < minReturning) {
-                            minReturning = z;
-                            xb = m;
-                            yb = c;
-                        }
-                    }
-                }
-
-                System.out.println(xb + " xb-yb " + yb);
-                startSide.M += xb;
-                startSide.C += yb;
-
-                endSide.M -= xb;
-                endSide.C -= yb;
-
-                System.out.println("Returning trip:");
-                System.out.println("Start Side: " + startSide);
-                System.out.println("End Side: " + endSide);
-            }
+            direction *= -1;
         }
 
         if(startSide.count() > 0) {
             return -1;
         }
 
-        return crossings;
+        return level;
     }
 
-    public void ride(Side s, Trip t) {
-        int M = 0;
-        int C = 0;
-
-
-    }
-
-    public class Side {
+    public class Side implements Cloneable {
         public int M = 0;
         public int C = 0;
+
+        private final int initM;
+        private final int initC;
 
         public Side(int M, int C) {
             this.M = M;
             this.C = C;
+
+            this.initM = M;
+            this.initC = C;
         }
 
         public int count() {
             return this.M + this.C;
         }
 
-        public boolean isValid(int addM, int addC) {
-            return (this.M + addM == 0) || (this.M + addM >= this.C + addC);
+        public boolean isValid() {
+            if(this.M > this.initM || this.M < 0) {
+                return false;
+            }
+
+            if(this.C > this.initC || this.C < 0) {
+                return false;
+            }
+
+            return ((this.M == 0)
+                    || (this.M >= this.C))
+                    && ((this.initM - this.M == 0) || (this.initM - this.M >= this.initC - this.C));
+        }
+
+        public void add(int addM, int addC) {
+            this.M += addM;
+            this.C += addC;
+        }
+
+        @Override
+        protected Side clone() {
+            Side otherSide = new Side(this.initM, this.initC);
+            otherSide.M = this.M;
+            otherSide.C = this.C;
+            return otherSide;
         }
 
         @Override
         public String toString() {
-            return new StringBuilder("M - ")
-                    .append(this.M)
-                    .append(", C - ")
-                    .append(this.C)
+            // (M,C):(otherM, otherC)
+            return new StringBuilder("(").append(this.M).append(",")
+                    .append(this.C).append("):(").append(this.initC - this.C)
+                    .append(",").append(this.initM - this.M)
+                    .append(this.initC - this.C).append(")")
                     .toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof Side) {
+                Side otherSide = (Side) obj;
+                if(this.M == otherSide.M
+                        && this.C == otherSide.C
+                        && this.initM == otherSide.initM
+                        && this.initC == otherSide.initC) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 31 * this.initM;
+            hash += 17 * this.initC;
+            hash += 11 * this.M;
+            hash += 7 * this.C;
+
+            return hash;
         }
     }
     public class Move {
@@ -143,29 +182,11 @@ public class Cannibals {
             this.M = M;
             this.C = C;
         }
-    }
 
-    public class Trip {
-        public final int R;
-
-        public Trip(int R) {
-            this.R = R;
+        @Override
+        public String toString() {
+            return new StringBuilder("<").append(this.M).append(",")
+                    .append(this.C).append(">").toString();
         }
-
-        public boolean isValid(int addM, int addC) {
-            if(this.R < addC + addM) {
-                return false;
-            }
-
-            if(addM > 0 && addM < addC) {
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-    public static void main(String[] args) {
-        System.out.println("5 : " + new Cannibals().minCrossings(3, 3, 2));
     }
 }
