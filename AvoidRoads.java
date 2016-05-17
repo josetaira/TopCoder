@@ -39,7 +39,6 @@ public class AvoidRoads {
                 if (y > 0 && !isBadDirection(BAD_DIRECTIONS, x, y - 1, x, y)) {
                     ways[x][y] += ways[x][y - 1];
                 }
-                System.out.println("ways[" + x + "][" + y + "] = " + ways[x][y]);
             }
         }
         return ways[width][height];
