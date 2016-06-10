@@ -17,13 +17,9 @@ public class Dubs {
             c += ((Rn - Ln) / 100L) * 10;
         }
 
-        if(Ln < R && L < Rn) {
-            c += getCount(L, Ln);
-            // Handle OFF-BY-ONE
-            c += getCount(Rn + 1, R);
-        } else {
-            c += getCount(L, R);
-        }
+        c += getCount(L, Math.min(Ln,R));
+        // Handle OFF-BY-ONE
+        c += getCount(Math.max(Ln, Rn) + 1, R);
 
         return c;
     }
@@ -41,9 +37,14 @@ public class Dubs {
     }
 
     private boolean isDoubleNum(long N) {
-        int ones = (int)(N - ((N / 10) * 10));
-        int tens = (int)(N - ((N / 100) * 100)) / 10;
+        return N % 100 % 11 == 0;
+    }
 
-        return ones == tens;
+    public static void main(String[] args) {
+        Dubs d = new Dubs();
+        System.out.println("1 : " + d.count(10, 20));
+        System.out.println("6 : " + d.count(49, 101));
+        System.out.println("6 : " + d.count(50, 100));
+        System.out.println("1 : " + d.count(10, 20));
     }
 }
