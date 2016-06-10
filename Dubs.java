@@ -15,32 +15,25 @@ public class Dubs {
 
         if(Rn >= Ln) {
             c += ((Rn - Ln) / 100L) * 10;
-            // The first and last hundreds will be double counted by the code below.
-            // Just offset them from here.
-            if(c > 0) {
-                c -= 1;
-            }
         }
 
         if(Ln < R && L < Rn) {
-            // Handles off-by-one
-            int sub = Ln == Rn ? 1 : 0;
-            for (long i = L; i <= Ln - sub; i++) {
-                if (isDoubleNum(i)) {
-                    c++;
-                }
-            }
-
-            for (long i = Rn; i <= R; i++) {
-                if (isDoubleNum(i)) {
-                    c++;
-                }
-            }
+            c += getCount(L, Ln);
+            // Handle OFF-BY-ONE
+            c += getCount(Rn + 1, R);
         } else {
-            for (long i = L; i <= R; i++) {
-                if (isDoubleNum(i)) {
-                    c++;
-                }
+            c += getCount(L, R);
+        }
+
+        return c;
+    }
+
+    private long getCount(long from, long to) {
+        int c = 0;
+
+        for (long i = from; i <= to; i++) {
+            if (isDoubleNum(i)) {
+                c++;
             }
         }
 
@@ -53,5 +46,4 @@ public class Dubs {
 
         return ones == tens;
     }
-
 }
